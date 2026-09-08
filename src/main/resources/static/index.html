@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CodeLens - AI Developer Assistant</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, Arial, sans-serif;
+            background: #0f172a;
+            color: #e5e7eb;
+        }
+
+        header {
+            padding: 22px 40px;
+            border-bottom: 1px solid #1e293b;
+            background: #111827;
+        }
+
+        .logo {
+            font-size: 25px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .tagline {
+            margin-top: 5px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .panel {
+            background: #111827;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 22px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 18px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+
+        .control {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 7px;
+        }
+
+        select {
+            width: 100%;
+            padding: 11px;
+            border-radius: 7px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: white;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 360px;
+            resize: vertical;
+            background: #020617;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #3b82f6;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .analyze-button,
+        .clear-button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 7px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .analyze-button {
+            background: #2563eb;
+            color: white;
+        }
+
+        .analyze-button:hover {
+            background: #1d4ed8;
+        }
+
+        .analyze-button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+        }
+
+        .clear-button {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .clear-button:hover {
+            background: #475569;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .ai-badge {
+            font-size: 12px;
+            padding: 5px 9px;
+            border-radius: 20px;
+            background: #1e3a8a;
+            color: #bfdbfe;
+        }
+
+        .responsible-ai {
+            background: #172033;
+            border-left: 4px solid #3b82f6;
+            padding: 12px 15px;
+            border-radius: 5px;
+            font-size: 13px;
+            color: #cbd5e1;
+            margin-bottom: 18px;
+        }
+
+        #result {
+            white-space: pre-wrap;
+            line-height: 1.7;
+            color: #dbeafe;
+            font-size: 14px;
+            background: #020617;
+            padding: 18px;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            min-height: 150px;
+            overflow-x: auto;
+        }
+
+        .loading {
+            color: #94a3b8;
+        }
+
+        .error {
+            color: #f87171;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        @media (max-width: 700px) {
+
+            header {
+                padding: 20px;
+            }
+
+            .container {
+                padding: 0 12px;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .button-row {
+                flex-direction: column;
+            }
+
+            textarea {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">
+        CodeLens
+    </div>
+
+    <div class="tagline">
+        AI-powered developer productivity assistant
+    </div>
+
+</header>
+
+
+<div class="container">
+
+    <!-- CODE INPUT -->
+
+    <div class="panel">
+
+        <div class="panel-title">
+            Analyze Your Code
+        </div>
+
+
+        <div class="controls">
+
+            <div class="control">
+
+                <label for="language">
+                    Programming Language
+                </label>
+
+                <select id="language">
+
+                    <option value="java">
+                        Java
+                    </option>
+
+                    <option value="python">
+                        Python
+                    </option>
+
+                    <option value="javascript">
+                        JavaScript
+                    </option>
+
+                    <option value="cpp">
+                        C++
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="control">
+
+                <label for="mode">
+                    Analysis Mode
+                </label>
+
+                <select id="mode">
+
+                    <option value="understand">
+                        Understand
+                    </option>
+
+                    <option value="review">
+                        Code Review
+                    </option>
+
+                    <option value="debug">
+                        Debug
+                    </option>
+
+                    <option value="test">
+                        Generate Tests
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <label for="code">
+            Source Code
+        </label>
+
+
+        <textarea
+            id="code"
+            placeholder="// Paste your code here..."
+        ></textarea>
+
+
+        <div class="button-row">
+
+            <button
+                id="analyzeButton"
+                class="analyze-button"
+                onclick="analyzeCode()"
+            >
+                Analyze Code
+            </button>
+
+
+            <button
+                class="clear-button"
+                onclick="clearCode()"
+            >
+                Clear
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- RESULTS -->
+
+    <div class="panel">
+
+        <div class="result-header">
+
+            <div class="result-title">
+                Analysis Results
+            </div>
+
+            <div class="ai-badge">
+                AI Generated
+            </div>
+
+        </div>
+
+
+        <div class="responsible-ai">
+
+            <strong>Responsible AI:</strong>
+
+            AI-generated recommendations may contain errors.
+            Review and verify suggestions before applying them
+            to production code.
+
+        </div>
+
+
+        <div id="result">
+            Your analysis will appear here.
+        </div>
+
+    </div>
+
+</div>
+
+
+<footer>
+
+    CodeLens • AI-assisted developer productivity
+
+</footer>
+
+
+<script>
+
+async function analyzeCode() {
+
+    const code =
+        document.getElementById("code").value;
+
+    const language =
+        document.getElementById("language").value;
+
+    const mode =
+        document.getElementById("mode").value;
+
+    const result =
+        document.getElementById("result");
+
+    const button =
+        document.getElementById("analyzeButton");
+
+
+    // Empty input validation
+
+    if (code.trim() === "") {
+
+        result.innerHTML =
+            '<span class="error">' +
+            'Please enter some code before analyzing.' +
+            '</span>';
+
+        return;
+    }
+
+
+    // Loading state
+
+    button.disabled = true;
+
+    button.textContent =
+        "Analyzing...";
+
+
+    result.innerHTML =
+        '<span class="loading">' +
+        'CodeLens is analyzing your code...' +
+        '</span>';
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/analyze",
+                {
+
+                    method: "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body: JSON.stringify({
+
+                        code: code,
+
+                        language: language,
+
+                        mode: mode
+
+                    })
+
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Server returned " +
+                response.status
+            );
+
+        }
+
+
+        const data =
+            await response.text();
+
+
+        result.textContent =
+            data;
+
+    }
+
+
+    catch (error) {
+
+        result.innerHTML =
+            '<span class="error">' +
+            'Unable to analyze code. ' +
+            error.message +
+            '</span>';
+
+    }
+
+
+    finally {
+
+        button.disabled = false;
+
+        button.textContent =
+            "Analyze Code";
+
+    }
+
+}
+
+
+/* CLEAR BUTTON */
+
+function clearCode() {
+
+    document.getElementById("code").value = "";
+
+    document.getElementById("result").textContent =
+        "Your analysis will appear here.";
+
+}
+
+</script>
+
+</body>
+
+</html>
